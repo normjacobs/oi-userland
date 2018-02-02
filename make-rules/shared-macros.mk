@@ -308,6 +308,15 @@ PROTOGNUSBIN.64 =	$(PROTOGNUSBIN64)
 PROTOGNULIB.32 =	$(PROTOGNULIB)
 PROTOGNULIB.64 =	$(PROTOGNULIB64)
 
+# Shared, potential GNU target triples
+GNU_TARGET_OS =			solaris$(SOLARIS_VERSION)
+GNU_TARGET_TRIPLE.i386.32 =     i386-pc-$(GNU_TARGET_OS)
+GNU_TARGET_TRIPLE.sparc.32 =    sparc-sun-$(GNU_TARGET_OS)
+GNU_TARGET_TRIPLE.arm.32 =      arm-unknown-$(GNU_TARGET_OS)
+GNU_TARGET_TRIPLE.i386.64 =     x86_64-pc-$(GNU_TARGET_OS)
+GNU_TARGET_TRIPLE.sparc.64 =    sparcv9-sun-$(GNU_TARGET_OS)
+GNU_TARGET_TRIPLE.arm.64 =      arm-unknown-$(GNU_TARGET_OS)
+
 # work around _TIME, _DATE, embedded date chatter in component builds
 # to use, set TIME_CONSTANT in the component Makefile and add $(CONSTANT_TIME)
 # to the appropriate {CONFIGURE|BUILD|INSTALL}_ENV
@@ -331,6 +340,7 @@ CONFIGURE_64 =		$(BUILD_DIR_64)/.configured
 
 BUILD_DIR_32 =		$(BUILD_DIR)/$(MACH32)
 BUILD_DIR_64 =		$(BUILD_DIR)/$(MACH64)
+BUILD_DIR_MACH =	$(BUILD_DIR)/$(MACH)
 
 BUILD_32 =		$(BUILD_DIR_32)/.built
 BUILD_64 =		$(BUILD_DIR_64)/.built
