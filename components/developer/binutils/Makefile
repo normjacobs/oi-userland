@@ -40,10 +40,49 @@ include $(WS_TOP)/make-rules/ips.mk
 
 PATH=/usr/gnu/bin:/usr/bin
 
-_GNU_TARGET_TRIPLE =	$(MACH:i386=i386-pc)
-GNU_TARGET_TRIPLE =	$(_GNU_TARGET_TRIPLE:sparc=sparc-sun)-solaris$(SOLARIS_VERSION)
+define add-target
+
+CONFIGURE_TARGET_$(1) =	$(BUILD_DIR)/$(MACH)/$(1)/.configured
+BUILD_TARGET_$(1) =	$(BUILD_DIR)/$(MACH)/$(1)/.built
+INSTALL_TARGET_$(1) =	$(BUILD_DIR)/$(MACH)/$(1)/.installed
+TEST_TARGET_$(1) =	$(BUILD_DIR)/$(MACH)/$(1)/.tested
+
+
+ifneq ($(findstring $(1),$(GNU_TARGET_TRIPLE.i386.32) $(GNU_TARGET_TRIPLE.sparc.32)),)
+$$(CONFIGURE_TARGET_$(1)):	BITS=32
+else
+$$(CONFIGURE_TARGET_$(1)):	BITS=64
+endif
+$$(CONFIGURE_TARGET_$(1)):	GNU_TARGET_TRIPLE=$(1)
+$$(BUILD_TARGET_$(1)):		GNU_TARGET_TRIPLE=$(1)
+$$(INSTALL_TARGET_$(1)):	GNU_TARGET_TRIPLE=$(1)
+$$(INSTALL_TARGET_$(1)):	PROTO_DIR=$(BUILD_DIR)/prototype/$(MACH)/$(1)
+$$(TEST_TARGET_$(1)):		GNU_TARGET_TRIPLE=$(1)
+$(BUILD_DIR)/manifest-$(MACH)-binutils-$(1).mogrified: GNU_TARGET_TRIPLE=$(1)
+
+CONFIGURE_TARGETS +=	$$(CONFIGURE_TARGET_$(1))
+BUILD_TARGETS +=	$$(BUILD_TARGET_$(1))
+INSTALL_TARGETS +=	$$(INSTALL_TARGET_$(1))
+TEST_TARGETS +=		$$(TEST_TARGET_$(1))
+
+endef
+
+# Various Platform support
+TARGETS +=	$(GNU_TARGET_TRIPLE.i386.32)
+TARGETS +=	$(GNU_TARGET_TRIPLE.sparc.32)
+TARGETS +=	$(GNU_TARGET_TRIPLE.i386.64)
+TARGETS +=	$(GNU_TARGET_TRIPLE.sparc.64)
+TARGETS +=	$(GNU_TARGET_TRIPLE.arm.64)
+
+# Add rules for each target
+$(foreach target, $(TARGETS), $(eval $(call add-target,$(target))))
+
+# default (for main package)
+GNU_TARGET_TRIPLE =		$(GNU_TARGET_TRIPLE.$(MACH).32)
 
 PKG_MACROS +=	GNU_TARGET_TRIPLE="$(GNU_TARGET_TRIPLE)"
+# 64-bit (for main package)
+PKG_MACROS +=	GNU_TARGET_TRIPLE.64="$(GNU_TARGET_TRIPLE.$(MACH).64)"
 
 CONFIGURE_PREFIX =	/usr/gnu
 
@@ -56,16 +95,22 @@ CONFIGURE_OPTIONS +=    --enable-nls
 CONFIGURE_OPTIONS +=    --disable-libtool-lock
 CONFIGURE_OPTIONS +=    --enable-largefile=yes
 CONFIGURE_OPTIONS +=	--with-system-zlib
+CONFIGURE_OPTIONS +=	--with-sysroot
 CONFIGURE_OPTIONS +=    --target=$(GNU_TARGET_TRIPLE)
+CONFIGURE_OPTIONS +=	--program-transform-name='s,^,$(GNU_TARGET_TRIPLE)-,'
 
-$(INSTALL_32):	$(INSTALL_64)
+CONFIGURE_BINDIR.64 = $(CONFIGURE_BINDIR.32)
+CONFIGURE_LIBDIR.64 = $(CONFIGURE_LIBDIR.32)
+
 
 # common targets
-build:		$(BUILD_32_and_64)
+configure: $(CONFIGURE_TARGETS)
 
-install:	$(INSTALL_32_and_64)
+build:		$(BUILD_TARGETS)
 
-test: $(TEST_32_and_64)
+install:	$(INSTALL_TARGETS)
+
+test: $(TEST_TARGETS)
 
 REQUIRED_PACKAGES += library/zlib
 REQUIRED_PACKAGES += system/library

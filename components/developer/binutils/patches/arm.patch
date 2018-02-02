@@ -1,0 +1,65 @@
+#
+# Adapted from https://github.com/rmustacc/illumos-extra/blob/arm-gate/binutils/arm.patch
+#
+diff -ruN binutils-2.30/bfd/config.bfd binutils-2.30/bfd/config.bfd
+--- binutils-2.30/bfd/config.bfd	2018-02-01 12:01:48.390639645 +0000
++++ binutils-2.30/bfd/config.bfd	2018-02-01 12:01:02.231310626 +0000
+@@ -443,7 +443,7 @@
+     targ_selvecs=arm_elf32_be_vec
+     ;;
+   arm-*-elf | arm*-*-freebsd* | arm*-*-linux-* | arm*-*-conix* | \
+-  arm*-*-uclinux* | arm-*-kfreebsd*-gnu | \
++  arm*-*-uclinux* | arm-*-kfreebsd*-gnu | arm-*-solaris* | \
+   arm*-*-eabi* | arm-*-rtems*)
+     targ_defvec=arm_elf32_le_vec
+     targ_selvecs=arm_elf32_be_vec
+diff -ruN binutils-2.30/gas/config/te-armsolariseabi.h binutils-2.30/gas/config/te-armsolariseabi.h
+--- binutils-2.30/gas/config/te-armsolariseabi.h	1969-12-31 18:00:00.000000000 +0000
++++ binutils-2.30/gas/config/te-armsolariseabi.h	2018-02-01 12:01:02.231626787 +0000
+@@ -0,0 +1,24 @@
++/* Copyright (c) 2013, Joyent, Inc.
++
++   This file is part of GAS, the GNU Assembler.
++
++   GAS is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as
++   published by the Free Software Foundation; either version 3,
++   or (at your option) any later version.
++
++   GAS is distributed in the hope that it will be useful, but
++   WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
++   the GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with GAS; see the file COPYING.  If not, write to the Free
++   Software Foundation, 51 Franklin Street - Fifth Floor, Boston, MA
++   02110-1301, USA.  */
++
++#include "te-solaris.h"
++
++/* The EABI requires the use of VFP.  */
++#define FPU_DEFAULT FPU_ARCH_VFP
++#define EABI_DEFAULT EF_ARM_EABI_VER5
+diff -ruN binutils-2.30/gas/configure.tgt binutils-2.30/gas/configure.tgt
+--- binutils-2.30/gas/configure.tgt	2018-01-13 07:31:15.000000000 +0000
++++ binutils-2.30/gas/configure.tgt	2018-02-01 12:01:02.231868037 +0000
+@@ -167,6 +167,7 @@
+   arm-*-pe)				fmt=coff em=pe ;;
+   arm-*-riscix*)			fmt=aout em=riscix ;;
+   arm-*-fuchsia*)			fmt=elf ;;
++  arm-*-solaris*)			fmt=elf em=armsolariseabi ;;
+ 
+   avr-*-*)				fmt=elf bfd_gas=yes ;;
+ 
+diff -ruN binutils-2.30/ld/configure.tgt binutils-2.30/ld/configure.tgt
+--- binutils-2.30/ld/configure.tgt	2018-01-13 07:31:16.000000000 +0000
++++ binutils-2.30/ld/configure.tgt	2018-02-01 12:01:02.232202145 +0000
+@@ -169,6 +169,7 @@
+ arm*-*-fuchsia*)	targ_emul=armelf_fuchsia
+ 			targ_extra_emuls="armelfb_fuchsia armelf armelfb"
+ 			;;
++arm*-*-solaris*)	targ_emul=armelf ;;
+ avr-*-*)		targ_emul=avr2
+ 			targ_extra_emuls="avr1 avr25 avr3 avr31 avr35 avr4 avr5 avr51 avr6 avrxmega1 avrxmega2 avrxmega3 avrxmega4 avrxmega5 avrxmega6 avrxmega7 avrtiny"
+ 			;;
